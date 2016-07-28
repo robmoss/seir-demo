@@ -13,38 +13,40 @@ SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, n) {
     r[0] = Math.max(0.0, 1.0 - s[0] - e[0] - i[0]);
     var beta = R0 / inf_durn;
 
-    s_to_e = function(s, e, i, r) {
+    var s_to_e = function(s, e, i, r) {
         return(beta * s * i);
-    }
+    };
 
-    e_to_i = function(s, e, i, r) {
+    var e_to_i = function(s, e, i, r) {
         return(e / lat_durn);
-    }
+    };
 
-    i_to_r = function(s, e, i, r) {
+    var i_to_r = function(s, e, i, r) {
         return(i / inf_durn);
-    }
+    };
 
-    r_to_s = function(s, e, i, r) {
+    var r_to_s = function(s, e, i, r) {
         if (res_durn <= 0) {
             return(0);
         }
         return(r / res_durn);
-    }
+    };
 
-    for (var ix = 0; ix < n; ix++) {
+    // Index variable for several loops, below.
+    var ix;
+    for (ix = 0; ix < n; ix++) {
         // Integrate forward; TODO -- backward Euler?
-        sub_steps = 10;
-        dt = 1.0 / sub_steps;
+        var sub_steps = 10;
+        var dt = 1.0 / sub_steps;
         var s_pr = s[ix],
             e_pr = e[ix],
             i_pr = i[ix],
             r_pr = r[ix];
-        for (j = 0; j < sub_steps; j++) {
-            to_e = dt * s_to_e(s_pr, e_pr, i_pr, r_pr);
-            to_i = dt * e_to_i(s_pr, e_pr, i_pr, r_pr);
-            to_r = dt * i_to_r(s_pr, e_pr, i_pr, r_pr);
-            to_s = dt * r_to_s(s_pr, e_pr, i_pr, r_pr);
+        for (var j = 0; j < sub_steps; j++) {
+            var to_e = dt * s_to_e(s_pr, e_pr, i_pr, r_pr);
+            var to_i = dt * e_to_i(s_pr, e_pr, i_pr, r_pr);
+            var to_r = dt * i_to_r(s_pr, e_pr, i_pr, r_pr);
+            var to_s = dt * r_to_s(s_pr, e_pr, i_pr, r_pr);
             // s[ix + 1] = Math.max(0.0, Math.min(1.0, s_pr - to_e));
             // e[ix + 1] = Math.max(0.0, Math.min(1.0, e_pr + to_e - to_i));
             // i[ix + 1] = Math.max(0.0, Math.min(1.0, i_pr + to_i - to_r));
@@ -68,7 +70,7 @@ SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, n) {
 
     var scale_by = 100; // popn;
 
-    for (var ix = 0; ix < n + 1; ix++) {
+    for (ix = 0; ix < n + 1; ix++) {
         data_S.push({x: ix, y: scale_by * s[ix]});
         data_E.push({x: ix, y: scale_by * e[ix]});
         data_I.push({x: ix, y: scale_by * i[ix]});
@@ -82,10 +84,9 @@ SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, n) {
     // Return lists of objects for use with D3.
     data_max = scale_by;
     return({s: data_S, e: data_E, i: data_I, r: data_R, ymax: data_max});
-}
+};
 
-SIR.plot = function(plot_id, ctrl_id) {
-    // https://www.sitepoint.com/creating-simple-line-bar-charts-using-d3-js/
+SIR.plot = function(plot_id, ctrl_id, param_vals) {
     var plot = {};
 
     plot.svg = d3.select(plot_id).append('svg');
@@ -97,7 +98,7 @@ SIR.plot = function(plot_id, ctrl_id) {
         top: 20,
         right: 20,
         bottom: 30,
-        left: 50
+        left: 80
     };
     plot.axis_width = 2;
 
@@ -105,18 +106,54 @@ SIR.plot = function(plot_id, ctrl_id) {
 
     plot.params = {};
     plot.params.popn = 100000;
-    plot.params.susc_frac = 1.0,
-    plot.params.R0 = 1.4,
-    plot.params.lat_durn = 0.5,
-    plot.params.inf_durn = 2.0,
-    plot.params.res_durn = 365,
+    plot.params.susc_frac = 1.0;
+    plot.params.R0 = 1.4;
+    plot.params.lat_durn = 0.5;
+    plot.params.inf_durn = 2.0;
+    plot.params.res_durn = 365;
     plot.params.n_days = 365;
+
+    if (param_vals === undefined) {
+        param_vals = {};
+    }
 
     // Set parameters to initial form values.
     var set_param = function(update_plot) {
         return(function() {
             if (this.id in plot.params) {
-                plot.params[this.id] = parseFloat(this.value);
+                if (this.type === "range") {
+                    if (this.min === this.max) {
+                        if (this.id in param_vals) {
+                            var values = param_vals[this.id];
+                            this.min = 0;
+                            this.max = values.length - 1;
+                            this.step = 1;
+                            this.data = values;
+                            // Pick the default initial value, if specified.
+                            var def = values.findIndex(function(v) { return v.default; });
+                            if (def >= 0) {
+                                this.value = def;
+                            }
+                        } else {
+                            console.log("No values to initialise '%s'",
+                                        this.id);
+                            return;
+                        }
+                    }
+                    var ix = parseInt(this.value);
+                    // Update the parameter value.
+                    plot.params[this.id] = this.data[ix].value;
+                    // Display the parameter value.
+                    var parent = d3.select(this.parentNode);
+                    var label = parent.select(".show_value")[0][0];
+                    if (this.data[ix].label !== undefined) {
+                        label.textContent = this.data[ix].label;
+                    } else {
+                        label.textContent = this.data[ix].value;
+                    }
+                } else {
+                    plot.params[this.id] = parseFloat(this.value);
+                }
                 if (update_plot) {
                     plot.update();
                 }
@@ -149,8 +186,7 @@ SIR.plot = function(plot_id, ctrl_id) {
             plot.params.res_durn,
             plot.params.n_days);
 
-        console.log("W x H: %f x %f", plot.width, plot.height);
-        console.log(plot.margin);
+        // console.log("W x H: %f x %f", plot.width, plot.height);
 
         if (plot.x_range === undefined) {
             plot.x_range = d3.scale.linear();
@@ -178,6 +214,7 @@ SIR.plot = function(plot_id, ctrl_id) {
             .scale(plot.y_range)
             .orient('left')
             .tickSize(0)
+            .tickFormat(function(d) { return d + "%"; })
             .ticks(4);
 
         // (Re)draw axes.
@@ -237,15 +274,7 @@ SIR.plot = function(plot_id, ctrl_id) {
     // Add update handlers for each input element.
     plot.ctrls.selectAll('select').on("change.param_val", set_param(true));
     plot.ctrls.selectAll('input').on("change.param_val", set_param(true));
-    // plot.ctrls.selectAll('select').on("change.param_val", function() {
-    //     if (this.id in plot.params) {
-    //         // Update this parameter and redraw the plot.
-    //         plot.params[this.id] = parseFloat(this.value);
-    //         plot.update();
-    //     } else {
-    //         console.log("Form control for unknown parameter '%s'", this.id);
-    //     }
-    // });
+    plot.ctrls.selectAll('input').on("input.param_val", set_param(true));
 
     d3.select(window).on('resize', function() {
         var svg_rect = plot.svg.node().getBoundingClientRect();
@@ -255,4 +284,4 @@ SIR.plot = function(plot_id, ctrl_id) {
     });
 
     plot.update();
-}
+};
