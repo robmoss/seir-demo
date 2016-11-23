@@ -39,8 +39,8 @@
       <script type="math/tex; mode=display">% <![CDATA[
   \begin{align*}
     \beta &= R_0 \cdot \gamma \\
-    \frac{{d\class{varS}{S}}}{dt} &= - \beta \class{varI}{I} \cdot \frac{\class{varS}{S}}{N} + \sigma \class{varR}{R} \\
-    \frac{d\class{varE}{E}}{dt} &= \beta \class{varI}{I} \cdot \frac{\class{varS}{S}}{N} - \alpha \class{varE}{E} \\
+    \frac{{d\class{varS}{S}}}{dt} &= - \beta \class{varI}{I} \cdot \left(\frac{\class{varS}{S}}{N}\right)^\eta + \sigma \class{varR}{R} \\
+    \frac{d\class{varE}{E}}{dt} &= \beta \class{varI}{I} \cdot \left(\frac{\class{varS}{S}}{N}\right)^\eta - \alpha \class{varE}{E} \\
     \frac{d\class{varI}{I}}{dt} &= \alpha \class{varE}{E} - \gamma \class{varI}{I} \\
     \frac{d\class{varR}{R}}{dt} &= \gamma \class{varI}{I} - \sigma \class{varR}{R} \\
   \end{align*}
@@ -105,6 +105,12 @@
         <!-- </select> -->
       </span>
       <span class="plot-control">
+        <input id="eta" type="range" min="0" max="0" />
+        <label for="eta">Mixing exponent
+          \(\left(\eta\right)\):</label>
+        <span class="show_value"></span>
+      </span>
+      <span class="plot-control">
         <input id="susc_frac" type="range" min="0" max="0" />
         <label for="susc_frac">Initial susceptibility
           \(\left(S(t=0)\right)\):</label>
@@ -152,6 +158,14 @@
                      {value: 180, label: '6 months'},
                      {value: 365, label: '1 year'},
                      {value: -1, label: 'Permanent', default: true}],
+          eta: [{value: 1, label: '1 (homogeneous)', default: true},
+                {value: 1.2, label: '1.2 (heterogeneous)'},
+                {value: 1.4, label: '1.4 (heterogeneous)'},
+                {value: 1.6, label: '1.6 (heterogeneous)'},
+                {value: 1.8, label: '1.8 (heterogeneous)'},
+                {value: 2.0, label: '2.0 (heterogeneous)'},
+                {value: 2.5, label: '2.5 (heterogeneous)'},
+                {value: 3.0, label: '3.0 (heterogeneous)'}],
           susc_frac: [{value: 0.25, label: '25%'},
                       {value: 0.50, label: '50%'},
                       {value: 0.75, label: '75%'},

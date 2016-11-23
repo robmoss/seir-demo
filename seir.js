@@ -2,7 +2,7 @@
 var SIR = SIR || {};
 
 // SIR.solve = function(s0, i0, beta, gamma, n) {
-SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, n) {
+SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, eta, n) {
     var s = new Float64Array(n + 1),
         e = new Float64Array(n + 1),
         i = new Float64Array(n + 1),
@@ -14,7 +14,7 @@ SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, n) {
     var beta = R0 / inf_durn;
 
     var s_to_e = function(s, e, i, r) {
-        return(beta * s * i);
+        return(beta * Math.pow(s, eta) * i);
     };
 
     var e_to_i = function(s, e, i, r) {
@@ -111,6 +111,7 @@ SIR.plot = function(plot_id, ctrl_id, param_vals) {
     plot.params.lat_durn = 0.5;
     plot.params.inf_durn = 2.0;
     plot.params.res_durn = 365;
+    plot.params.eta = 1.0;
     plot.params.n_days = 365;
 
     if (param_vals === undefined) {
@@ -184,6 +185,7 @@ SIR.plot = function(plot_id, ctrl_id, param_vals) {
             plot.params.lat_durn,
             plot.params.inf_durn,
             plot.params.res_durn,
+            plot.params.eta,
             plot.params.n_days);
 
         // console.log("W x H: %f x %f", plot.width, plot.height);
