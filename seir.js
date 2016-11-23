@@ -1,7 +1,6 @@
 // Create a namespace to contain all of the variables and functions.
 var SIR = SIR || {};
 
-// SIR.solve = function(s0, i0, beta, gamma, n) {
 SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, eta, n) {
     var s = new Float64Array(n + 1),
         e = new Float64Array(n + 1),
@@ -35,7 +34,7 @@ SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, eta, n) {
     // Index variable for several loops, below.
     var ix;
     for (ix = 0; ix < n; ix++) {
-        // Integrate forward; TODO -- backward Euler?
+        // Integrate using forward Euler, enforces an upper bound on dt.
         var sub_steps = 10;
         var dt = 1.0 / sub_steps;
         var s_pr = s[ix],
@@ -47,10 +46,6 @@ SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, eta, n) {
             var to_i = dt * e_to_i(s_pr, e_pr, i_pr, r_pr);
             var to_r = dt * i_to_r(s_pr, e_pr, i_pr, r_pr);
             var to_s = dt * r_to_s(s_pr, e_pr, i_pr, r_pr);
-            // s[ix + 1] = Math.max(0.0, Math.min(1.0, s_pr - to_e));
-            // e[ix + 1] = Math.max(0.0, Math.min(1.0, e_pr + to_e - to_i));
-            // i[ix + 1] = Math.max(0.0, Math.min(1.0, i_pr + to_i - to_r));
-            // r[ix + 1] = Math.max(0.0, Math.min(1.0, r_pr + to_r));
             s[ix + 1] = s_pr + to_s - to_e;
             e[ix + 1] = e_pr + to_e - to_i;
             i[ix + 1] = i_pr + to_i - to_r;
@@ -68,7 +63,8 @@ SIR.solve = function(popn, s_frac, R0, lat_durn, inf_durn, res_durn, eta, n) {
         data_R = [],
         data_max = 0.0;
 
-    var scale_by = 100; // popn;
+    // Convert from population fractions to percentages.
+    var scale_by = 100;
 
     for (ix = 0; ix < n + 1; ix++) {
         data_S.push({x: ix, y: scale_by * s[ix]});
@@ -187,8 +183,6 @@ SIR.plot = function(plot_id, ctrl_id, param_vals) {
             plot.params.res_durn,
             plot.params.eta,
             plot.params.n_days);
-
-        // console.log("W x H: %f x %f", plot.width, plot.height);
 
         if (plot.x_range === undefined) {
             plot.x_range = d3.scale.linear();
