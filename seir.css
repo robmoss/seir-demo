@@ -25,3 +25,6 @@ h2 { text-align: center; }
 #model-container > div { text-align: left;}
 #model-container #model-eqns { width: auto; padding-right: 1em; display: inline-block; float: none; vertical-align: top; }
 #model-container #model-params { width: auto; padding-left: 1em; display: inline-block; float: none; vertical-align: top; }
+
+#footer { text-align: center; padding-top: 2em; font-size: 90%; }
+#footer a:link, #footer a:visited, #footer a:hover, #footer a:focus, #footer a:active { color: #3182bd; }
