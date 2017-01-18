@@ -109,6 +109,7 @@ SIR.plot = function(plot_id, ctrl_id, param_vals) {
     plot.params.res_durn = 365;
     plot.params.eta = 1.0;
     plot.params.n_days = 365;
+    plot.params.y_max = 100;
 
     if (param_vals === undefined) {
         param_vals = {};
@@ -195,7 +196,7 @@ SIR.plot = function(plot_id, ctrl_id, param_vals) {
         }
         plot.y_range
             .range([plot.height - plot.margin.bottom, plot.margin.top])
-            .domain([0, output.ymax]);
+            .domain([0, plot.params.y_max]);
         if (plot.x_axis === undefined) {
             plot.x_axis = d3.svg.axis();
         }
@@ -241,7 +242,7 @@ SIR.plot = function(plot_id, ctrl_id, param_vals) {
             .attr("x1", plot.x_range(0) - plot.axis_width)
             .attr("y1", plot.y_range(0) + plot.axis_width)
             .attr("x2", plot.x_range(0) - plot.axis_width)
-            .attr("y2", plot.y_range(output.ymax));
+            .attr("y2", plot.y_range(plot.params.y_max));
         if (plot.y_ticks === undefined) {
             plot.y_ticks = plot.svg.append('svg:g')
                 .attr('class', 'y tick');
